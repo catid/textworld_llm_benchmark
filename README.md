@@ -10,6 +10,8 @@ It uses a *lot* of LLM inference so to avoid a $100 bill from OpenAI, I suggest 
 The code does use OpenAI API though if you want to see what GPT-4 or other models would do on this test.
 Right now, the easiest way to host Mixtral on a Linux server with Nvidia GPUs is this method: https://github.com/catid/oaimixtral
 
+Note that the number of tokens required for the full game context can get above 10K, so only the best models are going to be able to compete.
+
 
 ## Setup
 
@@ -38,10 +40,10 @@ python llm_play_textworld.py --openai_api_key "14d78630027e15de243c8b3b489a91fa"
 You can specify the experiment parameters like this:
 
 ```bash
-python llm_play_textworld.py --num_tests 100 --parallel 16 --max_episode_steps 50 --openai_api_key "14d78630027e15de243c8b3b489a91fa" --openai_base_url "http://devnuc.lan:5000/v1"
+python llm_play_textworld.py --num_tests 100 --parallel 32 --max_episode_steps 50 --openai_api_key "14d78630027e15de243c8b3b489a91fa" --openai_base_url "http://devnuc.lan:5000/v1"
 ```
 
-The defaults are 100 tests at up to 50 steps, and 16 in parallel at a time, but you may want to run more or fewer in parallel based on your setup.
+The defaults are 100 tests at up to 50 steps, and 32 in parallel at a time, but you may want to run more or fewer in parallel based on your setup.
 
 You can also adjust the model temperature and max output tokens.
 
@@ -50,7 +52,10 @@ With 6 Mixtral server setup, this finishes in about 30 minutes.
 
 ## Results
 
-Mixtral 8x7B model results:
+I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.
+
+
+Results:
 
 ```
 ```
