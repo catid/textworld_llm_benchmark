@@ -4,6 +4,7 @@ from tqdm import tqdm
 import os, shutil
 import random
 import argparse
+import time
 
 
 ################################################################################
@@ -78,64 +79,40 @@ def test_once(args, shared_dict, progress_queue):
 
     try:
         env_id = textworld.gym.register_game(game_file, max_episode_steps=args.max_episode_steps)
-
-        env = textworld.gym.make(env_id)  # Create the environment
+        env = textworld.gym.make(env_id)
         obs, infos = env.reset()
 
         if args.verbose:
             env.render()
 
-        messages = [
-            {"role": "system", "content": "You are a game playing genius AI assistant, helping the user to solve a challenging game."},
-        ]
+        system_message = "You are a game playing genius AI assistant."
+        user_message = f"I'm playing a puzzle game. Help me find the next step. The game shows:\n```\n{obs}\n```."
 
-        messages.append({"role": "user", "content": f"""I'm a software engineer playing a very difficult puzzle game.  Please help me finish the game!
-
-The game initially shows:
-```
-{obs}
-```
-
-Think step by step and come up with the best action to take next. Write the command in \"quotes\" to select the next action."""
-})
         score, moves, done = 0, 0, False
 
         while not done:
             response = client.chat.completions.create(
                 model="gpt-4-1106-preview",
-                messages=messages,
-                temperature=0.1,
-                max_tokens=512,
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": user_message}
+                ],
+                temperature=args.temperature,
+                max_tokens=args.max_tokens,
                 n=1,
             )
             content = response.choices[0].message.content.strip()
             command, truncated = extract_command(content)
-            if args.verbose:
-                logging.debug(f"AI Command: {command}")
 
             obs, score, done, infos = interact_with_environment(env, command)
-            if args.verbose:
-                env.render()
-                logging.info(f"Moves: {moves}; Score: {score}")
 
-            messages.append({"role": "assistant", "content": content})
-
-            reply = f"""Game now displays:
-```
-{obs}
-```
-"""
+            # Update user_message with the latest command and its result
+            user_message = f"Next step: '{command}' resulted in:\n```\n{obs}\n```"
             if infos:
-                reply += f"""Info:
-```
-{infos}
-```
-"""
-            if truncated:
-                reply += "Your previous command was cut off because it was too long.  Please modify your command to be shorter by removing unnecessary detail.\n"
-            reply += "What are your long-term goals? Think step by step and come up with the best action to take next. Write the command in \"quotes\" to select the next action."
+                user_message += f"\nInfo: '{infos}'."
 
-            messages.append({"role": "user", "content": reply})
+            if truncated:
+                user_message += "\nCommand was truncated. Please be more concise."
 
             progress_queue.put(1)  # Progress update
             moves += 1
@@ -149,6 +126,10 @@ Think step by step and come up with the best action to take next. Write the comm
     except Exception as e:
         logging.error(f"Error during test execution: {e}")
 
+    finally:
+        if 'env' in locals() and env is not None:
+            env.close()
+
 
 ################################################################################
 # Parallel Test Runner
@@ -160,37 +141,49 @@ def run_tests(args):
     shared_dict['total_moves'] = 0
     progress_queue = Queue()
 
-    processes = []
-
     print(f"Generating {args.num_tests} random maps and exploring in parallel instances...")
 
-    # Create and start processes
-    for _ in range(args.num_tests):
-        p = Process(target=test_once, args=(args, shared_dict, progress_queue))
-        p.start()
-        processes.append(p)
-
     # Initialize tqdm progress bar
-    with tqdm(total=args.num_tests * args.max_episode_steps) as pbar:  # Assuming 50 moves per test
-        while any(p.is_alive() for p in processes):
+    with tqdm(total=args.num_tests * args.max_episode_steps) as pbar:
+        processes = []
+        for _ in range(min(args.num_tests, args.parallel)):
+            p = Process(target=test_once, args=(args, shared_dict, progress_queue))
+            p.start()
+            processes.append(p)
+
+        completed_tests = 0
+        while completed_tests < args.num_tests:
+            # Remove and join completed processes
+            for p in list(processes):
+                if not p.is_alive():
+                    p.join()
+                    processes.remove(p)
+                    completed_tests += 1
+
+                    # Start a new process if there are tests left
+                    if completed_tests < args.num_tests:
+                        print(f"Completed {completed_tests}/{args.num_tests} tests.")
+                        p = Process(target=test_once, args=(args, shared_dict, progress_queue))
+                        p.start()
+                        processes.append(p)
+
+            # Update progress bar
             while not progress_queue.empty():
                 progress_queue.get()
                 pbar.update(1)
 
-    # Wait for all processes to complete
-    for p in processes:
-        p.join()
+            time.sleep(0.1)  # Prevents the loop from hogging CPU
 
-    # Calculate statistics
+    # Calculate and print statistics
     scores = shared_dict['scores']
     avg_score = sum(scores) / len(scores) if scores else 0
     min_score = min(scores) if scores else 0
     max_score = max(scores) if scores else 0
     avg_moves = shared_dict['total_moves'] / args.num_tests
 
-    # Print statistics
     print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score}")
     print(f"Average Number of Moves: {avg_moves}")
+
 
 
 ################################################################################
@@ -209,11 +202,16 @@ def delete_tw_games_folder():
 
 def main():
     parser = argparse.ArgumentParser(description="Run TextWorld tests.")
-    parser.add_argument("--num_tests", type=int, default=1, help="Number of tests to run.")
-    parser.add_argument("--max_episode_steps", type=int, default=100, help="Maximum number of steps per episode.")
+    parser.add_argument("--parallel", type=int, default=16, help="Number of tests to run in parallel.")
+    parser.add_argument("--num_tests", type=int, default=100, help="Total number of tests to run.")
+    parser.add_argument("--max_tokens", type=int, default=256, help="Number of tests to run in parallel.")
+    parser.add_argument("--temperature", type=float, default=0.1, help="Total number of tests to run.")
+    parser.add_argument("--max_episode_steps", type=int, default=50, help="Maximum number of steps per episode.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
 
     args = parser.parse_args()
+
+    print(f"args: {args}")
 
     # Clean up mess from last time
     delete_tw_games_folder()
