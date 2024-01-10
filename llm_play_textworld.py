@@ -13,7 +13,7 @@ import time
 logging.basicConfig(level=logging.WARNING)
 
 # OpenAI
-from openai import OpenAI
+import openai
 
 # TextWorld
 import textworld
@@ -48,13 +48,22 @@ def interact_with_environment(env, command):
 ################################################################################
 # Test Runner
 
+
+
+
+
+
+
+
+
 def test_once(args, shared_dict, progress_queue):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING)
 
     seed = random.randint(1, 10000000)
 
+
     # Initialize the OpenAI client with the provided arguments
-    client = OpenAI(
+    client = openai.OpenAI(
         api_key=args.openai_api_key,
         base_url=args.openai_base_url
     )
@@ -82,40 +91,63 @@ def test_once(args, shared_dict, progress_queue):
 
     try:
         env_id = textworld.gym.register_game(game_file, max_episode_steps=args.max_episode_steps)
-        env = textworld.gym.make(env_id)
+
+        env = textworld.gym.make(env_id)  # Create the environment
         obs, infos = env.reset()
 
         if args.verbose:
             env.render()
 
-        system_message = "You are a game playing genius AI assistant."
-        user_message = f"I'm playing a puzzle game. Help me find the next step. The game shows:\n```\n{obs}\n```."
+        messages = [
+            {"role": "system", "content": "You are a game playing genius AI assistant, helping the user to solve a challenging game."},
+        ]
 
+        messages.append({"role": "user", "content": f"""I'm a software engineer playing a very difficult puzzle game.  Please help me finish the game!
+
+The game initially shows:
+```
+{obs}
+```
+
+Think step by step and come up with the best action to take next. Write the command in \"quotes\" to select the next action."""
+})
         score, moves, done = 0, 0, False
 
         while not done:
             response = client.chat.completions.create(
-                model="gpt-4-1106-preview",
-                messages=[
-                    {"role": "system", "content": system_message},
-                    {"role": "user", "content": user_message}
-                ],
-                temperature=args.temperature,
-                max_tokens=args.max_tokens,
+                model="gpt-4-1106-preview", # Actually using Mixtral
+                messages=messages,
+                temperature=0.1,
+                max_tokens=512,
                 n=1,
             )
             content = response.choices[0].message.content.strip()
             command, truncated = extract_command(content)
+            if args.verbose:
+                logging.debug(f"AI Command: {command}")
 
             obs, score, done, infos = interact_with_environment(env, command)
+            if args.verbose:
+                env.render()
+                logging.info(f"Moves: {moves}; Score: {score}")
 
-            # Update user_message with the latest command and its result
-            user_message = f"Next step: '{command}' resulted in:\n```\n{obs}\n```"
+            reply = f"""Game now displays:
+```
+{obs}
+```
+"""
             if infos:
-                user_message += f"\nInfo: '{infos}'."
-
+                reply += f"""Info:
+```
+{infos}
+```
+"""
             if truncated:
-                user_message += "\nCommand was truncated. Please be more concise."
+                reply += "Your previous command was cut off because it was too long.  Please modify your command to be shorter by removing unnecessary detail.\n"
+            reply += "What are your long-term goals? Think step by step and come up with the best action to take next. Write the command in \"quotes\" to select the next action."
+
+            messages.append({"role": "assistant", "content": command})
+            messages.append({"role": "user", "content": reply})
 
             progress_queue.put(1)  # Progress update
             moves += 1
@@ -129,10 +161,6 @@ def test_once(args, shared_dict, progress_queue):
     except Exception as e:
         logging.error(f"Error during test execution: {e}")
 
-    finally:
-        if 'env' in locals() and env is not None:
-            env.close()
-
 
 ################################################################################
 # Parallel Test Runner
@@ -143,12 +171,13 @@ def print_scores(args, shared_dict, completed_tests=None):
     avg_score = sum(scores) / len(scores) if scores else 0
     min_score = min(scores) if scores else 0
     max_score = max(scores) if scores else 0
-    avg_moves = shared_dict['total_moves'] / args.num_tests
 
     if not completed_tests:
         print("Final results for {args.num_tests} tests:")
+        avg_moves = shared_dict['total_moves'] / args.num_tests
     else:
         print(f"Completed {completed_tests}/{args.num_tests} tests.")
+        avg_moves = shared_dict['total_moves'] / completed_tests
     print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score}")
     print(f"Average Number of Moves: {avg_moves}")
 
