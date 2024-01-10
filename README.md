@@ -71,9 +71,6 @@ backend http_back
 
 I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete.
 
-
-Results:
-
 ```
 Final results for 100 tests:
 Min/Avg/Max Score: 0/2.22/5 ± stddev=1.6792254106575388
