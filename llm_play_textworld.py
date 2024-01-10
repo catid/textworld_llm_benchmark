@@ -3,6 +3,8 @@
 from multiprocessing import Process, Manager, Queue
 from tqdm import tqdm
 import logging, os, shutil, random, time, struct, argparse
+import numpy as np
+import scipy.stats as stats
 
 
 ################################################################################
@@ -157,20 +159,32 @@ Think step by step and come up with the best action to take next. Write the comm
 # Parallel Test Runner
 
 def print_scores(args, shared_dict, completed_tests=None):
-    # Calculate and print statistics
+    # Extract scores and calculate basic statistics
     scores = shared_dict['scores']
-    avg_score = sum(scores) / len(scores) if scores else 0
+    avg_score = np.mean(scores) if scores else 0
+    std_dev = np.std(scores, ddof=1) if len(scores) > 1 else 0
     min_score = min(scores) if scores else 0
     max_score = max(scores) if scores else 0
 
+    # Print basic statistics
     if not completed_tests:
-        print("Final results for {args.num_tests} tests:")
-        avg_moves = shared_dict['total_moves'] / args.num_tests
+        completed_tests = args.num_tests
+        print(f"Final results for {args.num_tests} tests:")
     else:
         print(f"Completed {completed_tests}/{args.num_tests} tests.")
-        avg_moves = shared_dict['total_moves'] / completed_tests
-    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score}")
+    
+    avg_moves = shared_dict['total_moves'] / completed_tests if completed_tests else 0
+    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score} ± stddev={std_dev}")
     print(f"Average Number of Moves: {avg_moves}")
+
+    # Calculate and print confidence interval and standard deviation if scores are available
+    if scores:
+        # Choose your confidence level (e.g., 95%)
+        confidence_level = 0.95
+        z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
+        margin_error = z_score * (std_dev / np.sqrt(len(scores)))
+
+        print(f"95% Confidence Interval for the Average Score: {avg_score} ± {margin_error:.2f}")
 
 def run_tests(args):
     manager = Manager()

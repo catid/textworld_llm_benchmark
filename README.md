@@ -47,12 +47,29 @@ The defaults are 100 tests at up to 50 steps, and 32 in parallel at a time, but 
 
 You can also adjust the model temperature and max output tokens.
 
-With 6 Mixtral server setup, this finishes in about 30 minutes.
 
+## HAProxy tuning
+
+Adding maxconn helped spread the load better: `sudo vi /etc/haproxy/haproxy.cfg`
+
+```
+frontend http_front
+        bind *:5000
+        default_backend http_back
+
+backend http_back
+        balance roundrobin
+        server gpu1 gpu1.lan:5000 check maxconn 6
+        server gpu2 gpu2.lan:5000 check maxconn 6
+        server gpu3 gpu3.lan:5000 check maxconn 6
+        server gpu4 gpu4.lan:5000 check maxconn 6
+        server gpu5 gpu5.lan:5000 check maxconn 6
+        server gpu6 gpu6.lan:5000 check maxconn 6
+```
 
 ## Results
 
-I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.
+I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete.
 
 
 Results:

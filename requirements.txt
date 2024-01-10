@@ -1,3 +1,4 @@
 textworld
 openai
 tqdm
+scipy
