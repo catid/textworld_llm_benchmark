@@ -195,7 +195,8 @@ def run_tests(args):
 
     print(f"Generating {args.num_tests} random maps and exploring in parallel instances...")
 
-    # Initialize tqdm progress bar
+    # FIXME: The bar will never actually fill ideally because we will finish all tests before max_episode_steps
+    # FIXME: We actually go over 100% due to retries and other things like that
     with tqdm(total=args.num_tests * args.max_episode_steps) as pbar:
         processes = []
         for _ in range(min(args.num_tests, args.parallel)):

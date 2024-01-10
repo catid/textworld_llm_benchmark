@@ -75,6 +75,12 @@ I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral
 Results:
 
 ```
+Final results for 100 tests:
+Min/Avg/Max Score: 0/2.22/5 ± stddev=1.6792254106575388
+Average Number of Moves: 47.45
+95% Confidence Interval for the Average Score: 2.22 ± 0.33
 ```
+
+So Mixtral completes on average about 2.22 of 5 quests.
 
 I think this is a pretty good benchmark because the AI is able to score some points, but fails to complete the game most of the time.  There's plenty of room for new AIs to improve on this benchmark.
