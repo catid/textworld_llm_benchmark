@@ -14,10 +14,6 @@ logging.basicConfig(level=logging.WARNING)
 
 # OpenAI
 from openai import OpenAI
-client = OpenAI(
-    api_key="14d78630027e15de243c8b3b489a91fa",
-    base_url="http://devnuc.lan:5000/v1"
-)
 
 # TextWorld
 import textworld
@@ -54,7 +50,14 @@ def interact_with_environment(env, command):
 
 def test_once(args, shared_dict, progress_queue):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING)
+
     seed = random.randint(1, 10000000)
+
+    # Initialize the OpenAI client with the provided arguments
+    client = OpenAI(
+        api_key=args.openai_api_key,
+        base_url=args.openai_base_url
+    )
 
     options = GameOptions()
     options.seeds = seed
@@ -134,6 +137,17 @@ def test_once(args, shared_dict, progress_queue):
 ################################################################################
 # Parallel Test Runner
 
+def print_scores(shared_dict):
+    # Calculate and print statistics
+    scores = shared_dict['scores']
+    avg_score = sum(scores) / len(scores) if scores else 0
+    min_score = min(scores) if scores else 0
+    max_score = max(scores) if scores else 0
+    avg_moves = shared_dict['total_moves'] / args.num_tests
+
+    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score}")
+    print(f"Average Number of Moves: {avg_moves}")
+
 def run_tests(args):
     manager = Manager()
     shared_dict = manager.dict()
@@ -163,6 +177,8 @@ def run_tests(args):
                     # Start a new process if there are tests left
                     if completed_tests < args.num_tests:
                         print(f"Completed {completed_tests}/{args.num_tests} tests.")
+                        print_scores(shared_dict)
+
                         p = Process(target=test_once, args=(args, shared_dict, progress_queue))
                         p.start()
                         processes.append(p)
@@ -174,15 +190,7 @@ def run_tests(args):
 
             time.sleep(0.1)  # Prevents the loop from hogging CPU
 
-    # Calculate and print statistics
-    scores = shared_dict['scores']
-    avg_score = sum(scores) / len(scores) if scores else 0
-    min_score = min(scores) if scores else 0
-    max_score = max(scores) if scores else 0
-    avg_moves = shared_dict['total_moves'] / args.num_tests
-
-    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score}")
-    print(f"Average Number of Moves: {avg_moves}")
+    print_scores(shared_dict)
 
 
 
@@ -208,6 +216,8 @@ def main():
     parser.add_argument("--temperature", type=float, default=0.1, help="Total number of tests to run.")
     parser.add_argument("--max_episode_steps", type=int, default=50, help="Maximum number of steps per episode.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
+    parser.add_argument("--openai_api_key", type=str, default="14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
+    parser.add_argument("--openai_base_url", type=str, default="http://devnuc.lan:5000/v1", help="Base URL for OpenAI client.")
 
     args = parser.parse_args()
 
