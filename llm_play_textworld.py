@@ -1,10 +1,8 @@
-import logging
+# Play TextWorld with LLMs
+
 from multiprocessing import Process, Manager, Queue
 from tqdm import tqdm
-import os, shutil
-import random
-import argparse
-import time
+import logging, os, shutil, random, time, struct, argparse
 
 
 ################################################################################
@@ -48,19 +46,12 @@ def interact_with_environment(env, command):
 ################################################################################
 # Test Runner
 
-
-
-
-
-
-
-
-
 def test_once(args, shared_dict, progress_queue):
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING)
 
-    seed = random.randint(1, 10000000)
-
+    # Generate a seed using os.urandom
+    random_seed_bytes = os.urandom(8)  # Get 8 bytes of random data
+    seed = struct.unpack("<Q", random_seed_bytes)[0] % 4294967296  # Convert bytes to a single integer
 
     # Initialize the OpenAI client with the provided arguments
     client = openai.OpenAI(
@@ -225,7 +216,6 @@ def run_tests(args):
     print_scores(args, shared_dict)
 
 
-
 ################################################################################
 # Entrypoint
 
@@ -242,7 +232,7 @@ def delete_tw_games_folder():
 
 def main():
     parser = argparse.ArgumentParser(description="Run TextWorld tests.")
-    parser.add_argument("--parallel", type=int, default=16, help="Number of tests to run in parallel.")
+    parser.add_argument("--parallel", type=int, default=32, help="Number of tests to run in parallel.")
     parser.add_argument("--num_tests", type=int, default=100, help="Total number of tests to run.")
     parser.add_argument("--max_tokens", type=int, default=256, help="Number of tests to run in parallel.")
     parser.add_argument("--temperature", type=float, default=0.1, help="Total number of tests to run.")
