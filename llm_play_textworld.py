@@ -137,7 +137,7 @@ def test_once(args, shared_dict, progress_queue):
 ################################################################################
 # Parallel Test Runner
 
-def print_scores(args, completed_tests, shared_dict):
+def print_scores(args, shared_dict, completed_tests=None):
     # Calculate and print statistics
     scores = shared_dict['scores']
     avg_score = sum(scores) / len(scores) if scores else 0
@@ -180,7 +180,7 @@ def run_tests(args):
 
                     # Start a new process if there are tests left
                     if completed_tests < args.num_tests:
-                        print_scores(args, completed_tests, shared_dict)
+                        print_scores(args, shared_dict, completed_tests)
 
                         p = Process(target=test_once, args=(args, shared_dict, progress_queue))
                         p.start()
@@ -193,7 +193,7 @@ def run_tests(args):
 
             time.sleep(0.1)  # Prevents the loop from hogging CPU
 
-    print_scores(args, completed_tests=None, shared_dict)
+    print_scores(args, shared_dict)
 
 
 
