@@ -1,6 +1,6 @@
 # TextWorld LLM Benchmark
 
-Many people (myself included) consider intelligence to be equivalent to the ability to play unfamiliar games well.  Learning a new game requires reasoning, strategy, and lots of other human factors that are not usually tested on LLM benchmarks that can be solved by "training on the test set".
+Many people (myself included) consider intelligence to be equivalent to the ability to play unfamiliar games well.  Learning a new game requires reasoning, strategy, and lots of other human factors that are not usually tested on LLM benchmarks that can be solved by "training on the test set."
 
 Also consider that right now there is no general-purpose AI that is super-human at playing games.  There are only specialized AIs that are hand-coded for specific games that exceed human ability.  But given an unfamiliar game, humans are still superior at learning the rules and succeeding.
 
