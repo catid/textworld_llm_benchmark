@@ -52,7 +52,7 @@ You can also adjust the model temperature and max output tokens.
 
 ## Results
 
-I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete.
+I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete, so these results should be possible to reproduce for many people within 2 hours.
 
 ```
 Final results for 100 tests:
