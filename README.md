@@ -1,6 +1,6 @@
 # TextWorld LLM Benchmark
 
-Many people (myself included) consider intelligence to be equivalent to the ability to play games well.  Games require reasoning, strategy, and lots of other human factors that are not usually tested on LLM benchmarks that can be solved by "training on the test set".
+Many people (myself included) consider intelligence to be equivalent to the ability to play unfamiliar games well.  Learning a new game requires reasoning, strategy, and lots of other human factors that are not usually tested on LLM benchmarks that can be solved by "training on the test set."
 
 Also consider that right now there is no general-purpose AI that is super-human at playing games.  There are only specialized AIs that are hand-coded for specific games that exceed human ability.  But given an unfamiliar game, humans are still superior at learning the rules and succeeding.
 
@@ -52,7 +52,7 @@ You can also adjust the model temperature and max output tokens.
 
 ## Results
 
-I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete.
+I ran this test using 6 servers, each with 2-3 3090 or 4090 GPUs running Mixtral 8x7B.  The test took 20 minutes to complete, so these results should be possible to reproduce for many people within 2 hours.
 
 ```
 Final results for 100 tests:
