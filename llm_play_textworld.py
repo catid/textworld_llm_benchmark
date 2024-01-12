@@ -109,7 +109,7 @@ Think step by step and come up with the best action to take next. Write the comm
         while not done:
             try:
                 response = client.chat.completions.create(
-                    model="gpt-3.5-turbo-16k", # Actually using Mixtral
+                    model=args.openai_model,
                     messages=messages,
                     temperature=0.1,
                     max_tokens=512,
@@ -151,6 +151,10 @@ Think step by step and come up with the best action to take next. Write the comm
             progress_queue.put(1)  # Progress update
             moves += 1
 
+            if moves > args.max_episode_steps:
+                logging.info(f"Exceeded maximum episode steps, done!")
+                break
+
         shared_dict['scores'].append(score)
         shared_dict['total_moves'] += moves
 
@@ -180,7 +184,7 @@ def print_scores(args, shared_dict, completed_tests=None):
         print(f"Completed {completed_tests}/{args.num_tests} tests.")
     
     avg_moves = shared_dict['total_moves'] / completed_tests if completed_tests else 0
-    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score} ± stddev={std_dev}")
+    print(f"Min/Avg/Max Score: {min_score}/{avg_score}/{max_score} ± stddev={std_dev} on N={completed_tests} tests")
     print(f"Average Number of Moves: {avg_moves}")
 
     # Calculate and print confidence interval and standard deviation if scores are available
@@ -261,6 +265,7 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     parser.add_argument("--openai_api_key", type=str, default="sk-14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
     parser.add_argument("--openai_base_url", type=str, default="https://api.openai.com/v1/", help="Base URL for OpenAI client.")
+    parser.add_argument("--openai_model", type=str, default="gpt-3.5-turbo-16k", help="Model to request")
 
     args = parser.parse_args()
 

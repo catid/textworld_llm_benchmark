@@ -64,3 +64,19 @@ Average Number of Moves: 47.45
 So Mixtral completes on average about 2.22 of 5 quests.
 
 I think this is a pretty good benchmark because the AI is able to score some points, but fails to complete the game most of the time.  There's plenty of room for new AIs to improve on this benchmark.
+
+
+## OpenaI Tests
+
+To test GPT-3.5 (16K context), specify `--openai_api_key "sk-mykey" --num_tests 5 --parallel 5`.  You'll hit a lot of rate limits with OpenAI (and it costs $$) so using just a small number of tests is a good idea.
+
+```
+GPT-3.5:
+Min/Avg/Max Score: 0/2.8/5 ± stddev=1.9235384061671346 on N=5 tests
+Average Number of Moves: 43.6
+95% Confidence Interval for the Average Score: 2.8 ± 1.69
+```
+
+So GPT-3.5 performs similarly to Mixtral, perhaps a bit better.  It's hard to gain confidence because you'd need to run a lot more tests and I'm rate-limited.
+
+To test GPT-4, specify `--openai_api_key "sk-mykey" --openai_model "gpt-4-1106-preview" --num_tests 5 --parallel 5`.  I found that GPT-4 solves this challenge perfectly.  So it seems like one way to improve this benchmark is to add some harder objectives as well that GPT-4 has trouble completing.
