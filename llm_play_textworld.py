@@ -107,15 +107,21 @@ Think step by step and come up with the best action to take next. Write the comm
         score, moves, done = 0, 0, False
 
         while not done:
-            response = client.chat.completions.create(
-                model="gpt-4-1106-preview", # Actually using Mixtral
-                messages=messages,
-                temperature=0.1,
-                max_tokens=512,
-                n=1,
-            )
-            content = response.choices[0].message.content.strip()
-            command, truncated = extract_command(content)
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo-16k", # Actually using Mixtral
+                    messages=messages,
+                    temperature=0.1,
+                    max_tokens=512,
+                    n=1,
+                )
+                content = response.choices[0].message.content.strip()
+                command, truncated = extract_command(content)
+            except Exception as e:
+                logging.error(f"client.chat.completions.create error: {e}.  Retrying in 1 second...")
+                time.sleep(1)
+                continue
+
             if args.verbose:
                 logging.debug(f"AI Command: {command}")
 
@@ -253,8 +259,8 @@ def main():
     parser.add_argument("--temperature", type=float, default=0.1, help="Total number of tests to run.")
     parser.add_argument("--max_episode_steps", type=int, default=50, help="Maximum number of steps per episode.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
-    parser.add_argument("--openai_api_key", type=str, default="14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
-    parser.add_argument("--openai_base_url", type=str, default="http://devnuc.lan:5000/v1", help="Base URL for OpenAI client.")
+    parser.add_argument("--openai_api_key", type=str, default="sk-14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
+    parser.add_argument("--openai_base_url", type=str, default="https://api.openai.com/v1/", help="Base URL for OpenAI client.")
 
     args = parser.parse_args()
 
