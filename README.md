@@ -80,3 +80,8 @@ Average Number of Moves: 43.6
 So GPT-3.5 performs similarly to Mixtral, perhaps a bit better.  It's hard to gain confidence because you'd need to run a lot more tests and I'm rate-limited.
 
 To test GPT-4, specify `--openai_api_key "sk-mykey" --openai_model "gpt-4-1106-preview" --num_tests 5 --parallel 5`.  I found that GPT-4 solves this challenge perfectly.  So it seems like one way to improve this benchmark is to add some harder objectives as well that GPT-4 has trouble completing.
+
+
+## Future Work
+
+I'm working towards using Reinforcement Learning (RL) to advise the LLM of better actions to take, so there are some other unrelated files in the repo you can ignore for now.
