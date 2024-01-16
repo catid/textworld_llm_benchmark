@@ -1,7 +1,7 @@
 import time
 
 from sentence_transformers import SentenceTransformer
-sentences = ["open mailbox", "unlock case", "go east", "You see a locked case", "You are south of a house"]
+sentences = ["open mailbox", "unlock case", "go east", "You see a locked case", "You are south of a house and there is a lot going on and this is really long"]
 
 models = [
     'sentence-transformers/all-MiniLM-L12-v2',
@@ -18,3 +18,4 @@ for model_name in models:
     t1 = time.time()
 
     print(f"Model: {model_name} in {(t1 - t0) * 1000.0} msec")
+    print(f"Shape: {embeddings.shape}")
