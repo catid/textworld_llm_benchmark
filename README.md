@@ -66,9 +66,9 @@ So Mixtral completes on average about 2.22 of 5 quests.
 I think this is a pretty good benchmark because the AI is able to score some points, but fails to complete the game most of the time.  There's plenty of room for new AIs to improve on this benchmark.
 
 
-## OpenaI Tests
+## OpenAI Tests
 
-To test GPT-3.5 (16K context), specify `--openai_api_key "sk-mykey" --num_tests 5 --parallel 5`.  You'll hit a lot of rate limits with OpenAI (and it costs $$) so using just a small number of tests is a good idea.
+To test GPT-3.5 (16K context), specify `--openai_api_key "sk-mykey" --num_tests 5 --parallel 5`.  You'll hit a lot of rate limits with OpenAI (and it costs $$) so using just a small number of tests is a good idea.  Running just 5 tests cost me $10.
 
 ```
 GPT-3.5:
