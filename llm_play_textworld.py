@@ -113,7 +113,7 @@ Think step by step and come up with the best action to take next. Write the comm
         while not done:
             try:
                 # Truncate the input messages to fit within the context limit
-                context_size = sum(len(message["content"]) for message in messages)
+                context_size = sum(len(message["content"]) for message in messages) / 4
                 while context_size + args.max_tokens > args.context:
                     removed_message = messages.pop(1)  # Remove the oldest user message
                     context_size -= len(removed_message["content"])
