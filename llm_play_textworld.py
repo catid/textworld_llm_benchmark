@@ -61,6 +61,10 @@ def test_once(args, shared_dict, progress_queue):
         base_url=args.openai_base_url
     )
 
+    if args.openai_model == "":
+        models = client.models.list()
+        args.openai_model = models.data[0].id
+
     options = GameOptions()
     options.seeds = seed
     options.nb_rooms = 20
@@ -265,7 +269,7 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     parser.add_argument("--openai_api_key", type=str, default="sk-14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
     parser.add_argument("--openai_base_url", type=str, default="https://api.openai.com/v1/", help="Base URL for OpenAI client.")
-    parser.add_argument("--openai_model", type=str, default="gpt-3.5-turbo-16k", help="Model to request")
+    parser.add_argument("--openai_model", type=str, default="", help="Model to request.  Default: Use first one")
 
     args = parser.parse_args()
 
