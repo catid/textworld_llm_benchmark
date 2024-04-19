@@ -112,11 +112,17 @@ Think step by step and come up with the best action to take next. Write the comm
 
         while not done:
             try:
+                # Truncate the input messages to fit within the context limit
+                context_size = sum(len(message["content"]) for message in messages)
+                while context_size + args.max_tokens > args.context:
+                    removed_message = messages.pop(1)  # Remove the oldest user message
+                    context_size -= len(removed_message["content"])
+
                 response = client.chat.completions.create(
                     model=args.openai_model,
                     messages=messages,
                     temperature=0.1,
-                    max_tokens=512,
+                    max_tokens=args.max_tokens,
                     n=1,
                 )
                 content = response.choices[0].message.content.strip()
@@ -263,13 +269,14 @@ def main():
     parser = argparse.ArgumentParser(description="Run TextWorld tests.")
     parser.add_argument("--parallel", type=int, default=32, help="Number of tests to run in parallel.")
     parser.add_argument("--num_tests", type=int, default=100, help="Total number of tests to run.")
-    parser.add_argument("--max_tokens", type=int, default=256, help="Max tokens to produce from LLM.")
+    parser.add_argument("--max_tokens", type=int, default=512, help="Max tokens to produce from LLM.")
     parser.add_argument("--temperature", type=float, default=0.1, help="Temperature to use for LLM queries.")
     parser.add_argument("--max_episode_steps", type=int, default=50, help="Maximum number of steps per episode.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     parser.add_argument("--openai_api_key", type=str, default="sk-14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
     parser.add_argument("--openai_base_url", type=str, default="https://api.openai.com/v1/", help="Base URL for OpenAI client.")
     parser.add_argument("--openai_model", type=str, default="", help="Model to request.  Default: Use first one")
+    parser.add_argument("--context", type=int, default=8192, help="Maximum context size for input and output combined.")
 
     args = parser.parse_args()
 
