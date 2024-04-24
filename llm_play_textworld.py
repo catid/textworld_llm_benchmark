@@ -33,7 +33,8 @@ def extract_first_quoted_string(input_string):
         return None
 
 def extract_command(content):
-    command = extract_first_quoted_string(content) or content.split('\n', 1)[0].split('.', 1)[0]
+    command = extract_first_quoted_string(content) or content
+    command = command.split('\n', 1)[0].split('.', 1)[0]
     truncated = len(command) > 32
     return command[:32], truncated
 
