@@ -274,7 +274,7 @@ def main():
     parser.add_argument("--temperature", type=float, default=0.1, help="Temperature to use for LLM queries.")
     parser.add_argument("--max_episode_steps", type=int, default=50, help="Maximum number of steps per episode.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
-    parser.add_argument("--openai_api_key", type=str, default="sk-14d78630027e15de243c8b3b489a91fa", help="API key for OpenAI client.")
+    parser.add_argument("--openai_api_key", type=str, default="", help="API key for OpenAI client.")
     parser.add_argument("--openai_base_url", type=str, default="https://api.openai.com/v1/", help="Base URL for OpenAI client.")
     parser.add_argument("--openai_model", type=str, default="", help="Model to request.  Default: Use first one")
     parser.add_argument("--context", type=int, default=8192, help="Maximum context size for input and output combined.")
